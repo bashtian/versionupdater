@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/blang/semver"
 )
 
 func main() {
@@ -42,12 +44,11 @@ func (g Repo) updateGradleContent(content string) (string, bool) {
 		pkg := m[3]
 		module := m[4]
 		version := m[5]
-		//semver := m[8]
+		semver := m[8]
 		current := fmt.Sprintf("%s:%s:%s", pkg, module, version)
-		//fmt.Println(current)
+
 		if v := g.fetchVersions(pkg, module); v != nil {
-			usePreRelease := strings.Contains(version, "-")
-			lv := latestVersion(v, usePreRelease)
+			lv := latestVersion(v, version, semver)
 			newest := fmt.Sprintf("%s:%s:%s", pkg, module, lv)
 			if newest != current {
 				updated = true
@@ -85,12 +86,25 @@ type Metadata struct {
 	Release     string   `xml:"versioning>release"`
 	Versions    []string `xml:"versioning>versions>version"`
 	LastUpdated string   `xml:"versioning>lastUpdated"`
-	GroupId     string   `xml:"groupId"`
-	ArtifactId  string   `xml:"artifactId"`
+	GroupID     string   `xml:"groupId"`
+	ArtifactID  string   `xml:"artifactId"`
 	Version     string   `xml:"version"`
 }
 
-func latestVersion(versions []string, prerelease bool) string {
+func latestVersion(versions []string, currentVersion string, constraints string) string {
+	if valid, err := semver.ParseRange(constraints); err == nil {
+		for i := len(versions) - 1; i >= 0; i-- {
+			v, err := semver.Parse(versions[i])
+			if err != nil {
+				continue
+			}
+			if valid(v) {
+				return versions[i]
+			}
+		}
+	}
+
+	prerelease := isPrereleaseVersion(currentVersion)
 	for i := len(versions) - 1; i >= 0; i-- {
 		if !prerelease {
 			if isPrereleaseVersion(versions[i]) {
