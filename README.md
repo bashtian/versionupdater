@@ -12,10 +12,10 @@ go get github.com/bashtian/versionupdater
 versionupdater
 ```
 
-Versions can be pinned. See https://github.com/blang/semver#ranges for valid conditions.
+Versions can be pinned. See https://github.com/hashicorp/go-version#version-constraints for valid conditions.
 
 ```
 implementation 'com.google.android:flexbox:1.0.0' // 1.0.0
 
-implementation 'com.google.android:flexbox:1.0.0' // >=1.0.0 <2.0.0
+implementation 'com.google.android:flexbox:1.0.0' // >=1.0.0, <2.0.0
 ```
