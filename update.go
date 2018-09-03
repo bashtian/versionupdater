@@ -36,7 +36,7 @@ func (g Repo) updateGradleFile(filename string) {
 }
 
 func (g Repo) updateGradleContent(content string) (string, bool) {
-	re := regexp.MustCompile("(('|\")(.*):(.*):(.*)('|\"))(\\s?//\\s?(\\S*))?")
+	re := regexp.MustCompile("(('|\")(.*):(.*):(.*)('|\"))(\\s?//\\s*(.*))?")
 	matches := re.FindAllStringSubmatch(content, -1)
 
 	updated := false
