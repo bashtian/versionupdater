@@ -4,13 +4,14 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 
-	"github.com/blang/semver"
+	version "github.com/hashicorp/go-version"
 )
 
 func main() {
@@ -92,16 +93,22 @@ type Metadata struct {
 }
 
 func latestVersion(versions []string, currentVersion string, constraints string) string {
-	if valid, err := semver.ParseRange(constraints); err == nil {
+	if constraints != "" {
+		valid, err := version.NewConstraint(constraints)
+		if err != nil {
+			log.Printf("constraint '%v' is invalid: %v", constraints, err)
+			return currentVersion
+		}
 		for i := len(versions) - 1; i >= 0; i-- {
-			v, err := semver.Parse(versions[i])
+			v, err := version.NewVersion(versions[i])
 			if err != nil {
 				continue
 			}
-			if valid(v) {
+			if valid.Check(v) {
 				return versions[i]
 			}
 		}
+		return currentVersion
 	}
 
 	prerelease := isPrereleaseVersion(currentVersion)
